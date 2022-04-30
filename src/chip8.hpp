@@ -1,12 +1,9 @@
 #ifndef CHIP8_HPP
 #define CHIP8_HPP
 
-#include <cstdint>
-#include <cstring>
-#include <fstream>
-#include <iostream>
+#include <array>
 
-#include "utils.hpp"
+#include "types.hpp"
 
 #define MEMORY_SIZE     4096
 #define STACK_SIZE      16
@@ -16,17 +13,27 @@
 
 // chip-8 virtual machine implementation
 class chip8 {
-public:
-    std::uint8_t memory[MEMORY_SIZE]{};
-    std::uint32_t video[DISPLAY_SIZE]{};
-    std::uint8_t v[TOTAL_REGISTERS]{};
-    std::uint16_t i{};
-    std::uint16_t pc{};
-    std::uint8_t sp{};
-    std::uint16_t stack[STACK_SIZE]{};
-    std::uint8_t delay_timer{}, sound_timer{};
-    std::uint16_t opcode{};
+private:
+    std::array<u8, MEMORY_SIZE> memory{};
+    std::array<u32, DISPLAY_SIZE> video{};
+    std::array<u8, TOTAL_REGISTERS> v{};
+    u16 i{};
+    u16 pc{};
+    u8 sp{};
+    std::array<u16, STACK_SIZE> stack{};
+    u8 delay_timer{}, sound_timer{};
+    u16 opcode;
 
+    // opcode table
+    struct opcode_member {
+        u16 _opcode;
+        u16 _mask;
+        void (chip8::*_fn)();
+    };
+    std::array<struct opcode_member, 35> opcode_table{};
+
+
+public:
     chip8();
     ~chip8();
 
@@ -40,6 +47,151 @@ public:
 
     /// Reads opcodes and executes them
     void run();
+
+public:
+    /*********************
+        CPU INSTRUCTIONS
+    **********************/
+
+    /// 00E0 - CLS
+    /// Clear the display
+    void cls();
+
+    /// 00EE - RET
+    /// Return from subroutine
+    void ret();
+
+    ///
+    void sys();
+
+    /// 1nnn - JP addr
+    /// Jump to location nnn
+    void jp();
+
+    /// 2nnn - CALL addr
+    /// Call subroutine at nnn
+    void call();
+
+    /// 3xkk - SE Vx, byte
+    /// Skip next instruction if Vx = kk (if equal)
+    void seq_kk();
+
+    /// 4xkk - SNE Vx, byte
+    /// Skip next instruction if Vx != kk
+    void sne_kk();
+
+    /// 5xy0 - SE Vx, Vy
+    /// Skip next instruction if Vx = Vy (if registers equal)
+    void seq();
+
+    /// 6xkk - LD Vx, byte
+    /// Set Vx = kk
+    void ld_kk();
+
+    /// 7xkk - ADD Vx, byte
+    /// Set Vx = Vx + kk
+    void add_kk();
+
+    /// 8xy0 - LD Vx, Vy
+    /// Set Vx = Vy
+    void ld();
+
+    /// 8xy1 - OR Vx, Vy
+    /// Set Vx = Vx OR Vy
+    void logic_or();
+
+    /// 8xy2 - AND Vx, Vy
+    /// Set Vx = Vx AND Vy
+    void logic_and();
+
+    /// 8xy3 - XOR Vx, Vy
+    /// Set Vx = Vx XOR Vy
+    void logic_xor();
+
+    /// 8xy4 - ADD Vx, Vy
+    /// Set Vx = Vx + Vy, set VF = carry
+    void add();
+
+    /// 8xy5 - SUB Vx, Vy
+    /// Set Vx = Vx - Vy, set VF = NOT borrow
+    void sub();
+
+    /// 8xy6 - SHR Vx {, Vy}
+    /// Set Vx = Vx SHR 1
+    void shr();
+
+    /// 8xy7 - SUBN Vx, Vy
+    /// Set Vx = Vy - Vx, set VF = NOT borrow
+    void subn();
+
+    /// 8xyE - SHL Vx {, Vy}
+    /// Set Vx = Vx SHL 1
+    void shl();
+
+    /// 9xy0 - SNE Vx, Vy
+    /// Skip next instruction if Vx != Vy
+    void sne();
+
+    /// Annn - LD I, addr
+    /// Set I = nnn
+    void ld_i();
+
+    /// Bnnn - JP V0, addr
+    /// Jump to location nnn + V0 (jmp by offset)
+    void jpo();
+
+    /// Cxkk - RND Vx, byte
+    /// Set Vx = random byte AND kk
+    void rnd();
+
+    /// Dxyn - DRW Vx, Vy, nibble
+    /// Display n-byte sprite starting at mem location I at (Vx, Vy)
+    /// Set VF = collision
+    void drw();
+
+    /// Ex9E - SKP Vx
+    /// Skip next instruction if key with the value of Vx is pressed
+    void skp();
+
+    /// ExA1 - SKNP Vx
+    /// Skip next instruction if key with the value of Vx is not pressed
+    void sknp();
+
+    /// Fx07 - LD Vx, DT
+    /// Set Vx = delay timer value
+    void ld_vx_dt();
+
+    /// Fx0A - LD Vx, K
+    /// Wait for a key press, store the value of the key in Vx
+    void ld_k();
+
+    /// Fx15 - LD DT, Vx
+    /// Set delay timer = Vx
+    void ld_dt();
+
+    /// Fx18 - LD ST, Vx
+    /// Set sound timer = Vx
+    void ld_st();
+
+    /// Fx1E - ADD I, Vx
+    /// Set I = I + Vx
+    void add_i();
+
+    /// Fx29 - LD F, Vx
+    /// Set I = location of sprite for digit Vx
+    void ld_f();
+
+    /// Fx33 - LD B, Vx
+    /// Store BCD representation of Vx in memory locations I, I+1, and I+2
+    void str_b();
+
+    /// Fx55 - LD [I], Vx
+    /// Store registers V0 through Vx in memory starting at location I
+    void str_r();
+
+    /// Fx65 - LD Vx, [I]
+    /// Read registers V0 through Vx from memory starting at location I
+    void read_r();
 };
 
 #endif
