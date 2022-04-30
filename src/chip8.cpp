@@ -1,17 +1,16 @@
-// clang-format off
 #include <cstring>
+#include <unistd.h>
 #include <fstream>
 
 #include "chip8.hpp"
 #include "types.hpp"
 #include "utils.hpp"
-// clang-format on
 
 chip8::chip8() {
     load_fonts();
     pc = START_ADDR;
 
-    opcode_table = {{{0x00E0, 0xFFFF, &chip8::cls}, /* 0x00E0 */
+    opcode_table = {{{0x00E0, 0xFFFF, &chip8::cls}, // 0x00E0
         {0x00EE, 0xFFFF, &chip8::ret}, // 0x00EE
         {0x0000, 0xF000, &chip8::sys}, // 0x0NNN
         {0x1000, 0xF000, &chip8::jp}, // 0x1NNN
@@ -46,6 +45,8 @@ chip8::chip8() {
         {0xF033, 0xF0FF, &chip8::str_b}, // 0xFX33
         {0xF055, 0xF0FF, &chip8::str_r}, // 0xFX55
         {0xF065, 0xF0FF, &chip8::read_r}}}; // 0xFX65
+
+    std::srand((unsigned int) time(nullptr));
 }
 
 chip8::~chip8() {}
@@ -83,7 +84,7 @@ void chip8::load_rom(const std::string& filename) {
     }
 
     char c;
-    for (std::size_t i = START_ADDR; ifs.get(c); i++) {
+    for (usize i = START_ADDR; ifs.get(c); i++) {
         if (i >= MEMORY_SIZE) {
             fprintf(stderr, "[-] %s's ROM data exceeds %d bytes \n", filename.c_str(), MEMORY_SIZE);
             exit(-1);
@@ -94,25 +95,39 @@ void chip8::load_rom(const std::string& filename) {
     ifs.close();
 }
 
+void chip8::load_rom(const std::vector<u8>& raw_data) {
+    for (usize idx = START_ADDR; const auto& b : raw_data) {
+        memory[idx] = b;
+        idx++;
+    }
+}
+
 void chip8::run() {
-    opcode   = memory[pc] << 8 | memory[pc + 1];
-    u8 msbit = get_msbit(opcode);
-    printf("%02x %02x ; opcode = %04x ; msbit = %01x ", memory[i], memory[i + 1], opcode, msbit);
+    while (1) {
+        opcode = (memory[pc] << 8 | memory[pc + 1]);
 
-    bool found = false;
-    for (const auto& op : opcode_table) {
-        if ((opcode & op._mask) == op._opcode) {
-            found = true;
-            (this->*(op._fn))();
-            break;
+        u8 hnibble = get_highest_nibble(opcode);
+        printf("%02x %02x ; opcode = %04x ; nibble = %01x ", memory[pc], memory[pc + 1], opcode, hnibble);
+
+        pc += 2;
+
+        bool found = false;
+        for (const auto& op : opcode_table) {
+            if (op._opcode == (opcode & op._mask)) {
+                found = true;
+                (this->*(op._fn))();
+                break;
+            }
         }
-    }
 
-    if (!found) {
-        printf("[ERR] instruction/opcode implementation not found :(");
-    }
+        if (!found) {
+            printf("[ERR] instruction/opcode implementation not found :(");
+        }
 
-    printf("\n");
+        printf("\n");
+
+        sleep(1);
+    }
 }
 
 void chip8::cls() {
@@ -126,145 +141,188 @@ void chip8::ret() {
 void chip8::sys() {}
 
 void chip8::jp() {
-    pc = opcode & 0xFFF;
+    pc = get_nnn(opcode);
 }
 
 void chip8::call() {
     stack[sp++] = pc;
-    pc          = opcode & 0xFFF;
+    pc          = get_nnn(opcode);
 }
 
 void chip8::seq_kk() {
-    u8 x  = (opcode & 0x0F00) >> 8;
-    u8 kk = (opcode & 0xFF);
+    u8 x  = get_x(opcode);
+    u8 kk = get_kk(opcode);
     pc    = pc + (v[x] == kk ? 2 : 0);
 }
 
 void chip8::sne_kk() {
-    u8 x  = (opcode & 0xF00) >> 8;
-    u8 kk = (opcode & 0xFF);
+    u8 x  = get_x(opcode);
+    u8 kk = get_kk(opcode);
     pc    = pc + (v[x] != kk ? 2 : 0);
 }
 
 void chip8::seq() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     pc   = pc + (v[x] == v[y] ? 2 : 0);
 }
 
 void chip8::ld_kk() {
-    u8 x  = (opcode & 0xF00) >> 8;
-    u8 kk = (opcode & 0xFF);
+    u8 x  = get_x(opcode);
+    u8 kk = get_kk(opcode);
     v[x]  = kk;
 }
 
 void chip8::add_kk() {
-    u8 x  = (opcode & 0xF00) >> 8;
-    u8 kk = (opcode & 0xFF);
+    u8 x  = get_x(opcode);
+    u8 kk = get_kk(opcode);
     v[x] += kk;
 }
 
 void chip8::ld() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     v[x] = v[y];
 }
 
 void chip8::logic_or() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     v[x] |= v[y];
 }
 
 void chip8::logic_and() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     v[x] &= v[y];
 }
 
 void chip8::logic_xor() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     v[x] ^= v[y];
 }
 
 void chip8::add() {
-    u8 x    = (opcode & 0xF00) >> 8;
-    u8 y    = (opcode & 0xF0) >> 4;
+    u8 x    = get_x(opcode);
+    u8 y    = get_y(opcode);
     u16 sum = v[x] + v[y];
     v[0xF]  = (sum > 0xFF ? 1 : 0);
     v[x] += (sum & 0xFF);
 }
 
 void chip8::sub() {
-    u8 x   = (opcode & 0xF00) >> 8;
-    u8 y   = (opcode & 0xF0) >> 4;
+    u8 x   = get_x(opcode);
+    u8 y   = get_y(opcode);
     v[0xF] = (v[x] < v[y] ? 1 : 0);
     v[x] -= v[y];
 }
 
 void chip8::shr() {
-    u8 x = (opcode & 0xF00) >> 8;
-    // u8 y   = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    // u8 y   = get_y(opcode);
     v[0xF] = (v[x] & 0x1);
     v[x] >>= 1;
 }
 
 void chip8::subn() {
-    u8 x   = (opcode & 0xF00) >> 8;
-    u8 y   = (opcode & 0xF0) >> 4;
+    u8 x   = get_x(opcode);
+    u8 y   = get_y(opcode);
     v[0xF] = (v[y] > v[x] ? 1 : 0);
     v[x]   = v[y] - v[x];
 }
 
 void chip8::shl() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     // TODO
     v[0xF] = v[x] & 0x0080;
     v[x] <<= 1;
 }
 
 void chip8::sne() {
-    u8 x = (opcode & 0xF00) >> 8;
-    u8 y = (opcode & 0xF0) >> 4;
+    u8 x = get_x(opcode);
+    u8 y = get_y(opcode);
     pc   = pc + (v[x] != v[y] ? 2 : 0);
 }
 
 void chip8::ld_i() {
-    i = (opcode & 0xFFF);
+    i = get_nnn(opcode);
 }
 
 void chip8::jpo() {
-    pc = (opcode & 0xFFF) + v[0];
+    pc = get_nnn(opcode) + v[0];
 }
 
 void chip8::rnd() {
-    // TODO:
+    u8 x  = get_x(opcode);
+    u8 kk = get_kk(opcode);
+    v[x]  = (std::rand() % 0xFF) & kk;
 }
 
 void chip8::drw() {
+    u8 n = get_lowest_nibble(opcode);
+    for (usize row = 0; row < n; row++) {
+    }
 }
 
 void chip8::skp() {
+    u8 x = get_x(opcode);
+    pc   = pc + (keypad[v[x]] ? 2 : 0);
 }
+
 void chip8::sknp() {
+    u8 x = get_x(opcode);
+    pc   = pc + (keypad[v[x]] ? 0 : 2);
 }
+
 void chip8::ld_vx_dt() {
+    u8 x = get_x(opcode);
+    v[x] = delay_timer;
 }
+
 void chip8::ld_k() {
+    bool pressed = false;
+    for (usize idx = 0; const auto& key : keypad) {
+        if (key == 1) {
+            u8 x    = get_x(opcode);
+            v[x]    = idx;
+            pressed = true;
+            return;
+        }
+        idx++;
+    }
+
+    if (!pressed)
+        pc -= 2;
 }
+
 void chip8::ld_dt() {
+    delay_timer = get_x(opcode);
 }
+
 void chip8::ld_st() {
+    sound_timer = get_x(opcode);
 }
+
 void chip8::add_i() {
+    i += get_x(opcode);
 }
+
 void chip8::ld_f() {
 }
+
 void chip8::str_b() {
 }
+
 void chip8::str_r() {
+    u8 x = get_x(opcode);
+    for (usize idx = 0; i <= x; idx++)
+        memory[i + idx] = v[idx];
 }
+
 void chip8::read_r() {
+    u8 x = get_x(opcode);
+    for (usize idx = 0; i <= x; idx++)
+        v[idx] = memory[i + idx];
 }

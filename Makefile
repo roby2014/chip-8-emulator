@@ -1,12 +1,12 @@
 CXX		  := g++
-CXX_FLAGS := -Wall -Wextra -std=c++17 -ggdb
+CXX_FLAGS := -Wall -Wextra -std=c++20 -ggdb
 
 BIN		:= bin
 SRC		:= src
 LIB		:= lib # in case we need linking external libraries
 
 LIBRARIES	:=
-EXECUTABLE	:= main
+EXECUTABLE	:= chip8
 
 all: $(BIN)/$(EXECUTABLE)
 

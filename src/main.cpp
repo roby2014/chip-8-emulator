@@ -10,7 +10,13 @@ int main(int argc, char** argv) {
     }
 
     chip8 vm;
-    vm.load_rom(argv[1]);
+
+    if (1) {
+        vm.load_rom(argv[1]);
+    } else {
+        vm.load_rom(std::initializer_list<u8>({0xF1, 0x0A, 0x44, 0x44}));
+    }
+
     vm.run();
 
     return 0;

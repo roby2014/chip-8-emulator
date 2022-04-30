@@ -1,10 +1,7 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
-#include <iostream>
-#include <stdint.h>
-
-// xd.
+// :D
 
 using usize = std::size_t;
 
