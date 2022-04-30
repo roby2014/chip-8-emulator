@@ -5,11 +5,12 @@
 
 #include "types.hpp"
 
-#define MEMORY_SIZE     4096
-#define STACK_SIZE      16
-#define TOTAL_REGISTERS 16
-#define START_ADDR      512
-#define DISPLAY_SIZE    64 * 32
+#define MEMORY_SIZE      4096
+#define STACK_SIZE       16
+#define TOTAL_REGISTERS  16
+#define START_ADDR       512
+#define DISPLAY_SIZE     64 * 32
+#define MAX_INSTRUCTIONS 35
 
 // chip-8 virtual machine implementation
 class chip8 {
@@ -30,7 +31,7 @@ private:
         u16 _mask;
         void (chip8::*_fn)();
     };
-    std::array<struct opcode_member, 35> opcode_table{};
+    std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
 
 public:
@@ -45,7 +46,7 @@ public:
     /// Function exits the program if an error occurred
     void load_rom(const std::string& filename);
 
-    /// Reads opcodes and executes them
+    /// Fetch, decode, execute...
     void run();
 
 public:

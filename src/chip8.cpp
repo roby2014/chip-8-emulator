@@ -95,30 +95,24 @@ void chip8::load_rom(const std::string& filename) {
 }
 
 void chip8::run() {
+    opcode   = memory[pc] << 8 | memory[pc + 1];
+    u8 msbit = get_msbit(opcode);
+    printf("%02x %02x ; opcode = %04x ; msbit = %01x ", memory[i], memory[i + 1], opcode, msbit);
 
-
-    for (int i = pc; i < pc + 20; i += 2) {
-        opcode   = memory[i] << 8 | memory[i + 1];
-        u8 msbit = get_msbit(opcode);
-        printf("%02x %02x ; opcode = %04x ; msbit = %01x ", memory[i], memory[i + 1], opcode, msbit);
-
-
-        // lookup on the table what we want to execute
-        bool found = false;
-        for (const auto& op : opcode_table) {
-            if ((opcode & op._mask) == op._opcode) {
-                found = true;
-                (this->*(op._fn))();
-                break;
-            }
+    bool found = false;
+    for (const auto& op : opcode_table) {
+        if ((opcode & op._mask) == op._opcode) {
+            found = true;
+            (this->*(op._fn))();
+            break;
         }
-
-        if (!found) {
-            printf("[ERR] instruction/opcode implementation not found :(");
-        }
-
-        printf("\n");
     }
+
+    if (!found) {
+        printf("[ERR] instruction/opcode implementation not found :(");
+    }
+
+    printf("\n");
 }
 
 void chip8::cls() {
