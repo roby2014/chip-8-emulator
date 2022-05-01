@@ -102,6 +102,10 @@ void chip8::load_rom(const std::vector<u8>& raw_data) {
     }
 }
 
+u32 chip8::get_pixel(usize idx) {
+    return video[idx];
+}
+
 void chip8::run() {
     opcode = (memory[pc] << 8 | memory[pc + 1]);
 

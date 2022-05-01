@@ -37,15 +37,15 @@ int main(int argc, char** argv) {
 
         // draw
         auto row = 0;
-        for (usize idx = 0; idx < emu.video.size(); idx++) {
+        for (usize idx = 0; idx < DISPLAY_SIZE; idx++) {
             auto col = (idx % CHIP8_WIDTH);
 
             sf::RectangleShape pixel(sf::Vector2f(SCALE_FACTOR, SCALE_FACTOR));
             pixel.setPosition(col * SCALE_FACTOR, row * SCALE_FACTOR);
-            pixel.setFillColor(emu.video[idx] == 1 ? sf::Color::White : sf::Color::Black);
+            pixel.setFillColor(emu.get_pixel(idx) == 1 ? sf::Color::White : sf::Color::Black);
             window.draw(pixel);
 
-            if (idx != 0 && idx % CHIP8_WIDTH == 0) {
+            if ((idx + 1) % CHIP8_WIDTH == 0) {
                 row++;
             }
         }

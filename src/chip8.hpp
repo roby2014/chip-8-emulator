@@ -20,6 +20,7 @@
 class chip8 {
 private:
     std::array<u8, MEMORY_SIZE> memory{};
+    std::array<u32, DISPLAY_SIZE> video{};
     std::array<u8, TOTAL_REGISTERS> v{};
     u16 i{};
     u16 pc{};
@@ -39,10 +40,6 @@ private:
     std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
 public:
-    // FIXME: This array is public since its needed on main to display graphics
-    // find a solution in order to make it private
-    std::array<u32, DISPLAY_SIZE> video{};
-
     chip8();
     ~chip8();
 
@@ -58,6 +55,10 @@ public:
     /// @param raw_data ROM data, as raw bytes
     /// This function can be used to debug/test custom ROMs
     void load_rom(const std::vector<u8>& raw_data);
+
+    /// Returns __video's pixel at address __idx
+    /// This can be used on the draw function to check if we should draw
+    u32 get_pixel(usize idx);
 
     /// Fetch, decode, execute...
     void run();
