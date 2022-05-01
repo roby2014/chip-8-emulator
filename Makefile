@@ -5,7 +5,7 @@ BIN		:= bin
 SRC		:= src
 LIB		:= lib # in case we need linking external libraries
 
-LIBRARIES	:=
+LIBRARIES	:= -lsfml-graphics -lsfml-window -lsfml-system
 EXECUTABLE	:= chip8
 
 all: $(BIN)/$(EXECUTABLE)

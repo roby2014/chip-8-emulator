@@ -15,4 +15,9 @@ using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 
+/// Represents a "point" by (x,y)
+typedef struct point {
+    u32 x, y;
+} point_t;
+
 #endif

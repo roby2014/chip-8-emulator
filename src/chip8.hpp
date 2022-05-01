@@ -13,12 +13,13 @@
 #define DISPLAY_SIZE     64 * 32
 #define MAX_INSTRUCTIONS 35
 #define MAX_KEYS         16
+#define CHIP8_WIDTH      64
+#define CHIP8_HEIGHT     32
 
 // CHIP-8 virtual machine implementation
 class chip8 {
 private:
     std::array<u8, MEMORY_SIZE> memory{};
-    std::array<u32, DISPLAY_SIZE> video{};
     std::array<u8, TOTAL_REGISTERS> v{};
     u16 i{};
     u16 pc{};
@@ -38,6 +39,10 @@ private:
     std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
 public:
+    // FIXME: This array is public since its needed on main to display graphics
+    // find a solution in order to make it private
+    std::array<u32, DISPLAY_SIZE> video{};
+
     chip8();
     ~chip8();
 

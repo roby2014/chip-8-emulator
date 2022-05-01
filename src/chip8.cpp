@@ -103,31 +103,27 @@ void chip8::load_rom(const std::vector<u8>& raw_data) {
 }
 
 void chip8::run() {
-    while (1) {
-        opcode = (memory[pc] << 8 | memory[pc + 1]);
+    opcode = (memory[pc] << 8 | memory[pc + 1]);
 
-        u8 hnibble = get_highest_nibble(opcode);
-        printf("%02x %02x ; opcode = %04x ; nibble = %01x ", memory[pc], memory[pc + 1], opcode, hnibble);
+    u8 hnibble = get_highest_nibble(opcode);
+    // printf("%02x %02x ; opcode = %04x ; nibble = %01x ", memory[pc], memory[pc + 1], opcode, hnibble);
 
-        pc += 2;
+    pc += 2;
 
-        bool found = false;
-        for (const auto& op : opcode_table) {
-            if (op._opcode == (opcode & op._mask)) {
-                found = true;
-                (this->*(op._fn))();
-                break;
-            }
+    bool found = false;
+    for (const auto& op : opcode_table) {
+        if (op._opcode == (opcode & op._mask)) {
+            found = true;
+            (this->*(op._fn))();
+            break;
         }
-
-        if (!found) {
-            printf("[ERR] instruction/opcode implementation not found :(");
-        }
-
-        printf("\n");
-
-        sleep(1);
     }
+
+    if (!found) {
+        printf("[ERR] instruction/opcode implementation not found :(");
+    }
+
+    // printf("\n");
 }
 
 void chip8::cls() {
@@ -199,7 +195,7 @@ void chip8::add() {
     u8 y    = get_y(opcode);
     u16 sum = v[x] + v[y];
     v[0xF]  = (sum > 0xFF ? 1 : 0);
-    v[x] += (sum & 0xFF);
+    v[x]    = (sum & 0xFF);
 }
 
 void chip8::sub() {
@@ -250,16 +246,15 @@ void chip8::rnd() {
 }
 
 void chip8::drw() {
-    // FIXME maybe, not sure if this works properly
     v[0xF]     = 0;
-    auto cords = std::make_pair(v[get_x(opcode)] % 64, v[get_y(opcode)] % 32);
+    auto cords = point_t(v[get_x(opcode)] % CHIP8_WIDTH, v[get_y(opcode)] % CHIP8_HEIGHT);
     u8 n       = get_lowest_nibble(opcode);
 
     for (usize row = 0; row < n; row++) {
         u8 sprite = memory[i + row];
 
         for (usize col = 0; col < 8; col++) {
-            auto idx       = (cords.first + col) + ((cords.second + row) * 64);
+            auto idx       = (cords.x + col) + ((cords.y + row) * CHIP8_WIDTH);
             u8 sprite_px   = sprite & (0x80 >> col);
             u32* screen_px = &video[idx];
 
@@ -267,7 +262,7 @@ void chip8::drw() {
                 if (*screen_px) {
                     v[0xF] = 1;
                 }
-                *screen_px ^= sprite_px;
+                *screen_px ^= 1;
             }
         }
     }
@@ -275,12 +270,14 @@ void chip8::drw() {
 
 void chip8::skp() {
     u8 x = get_x(opcode);
-    pc   = pc + (keypad[v[x]] ? 2 : 0);
+    if (keypad[v[x]])
+        pc += 2;
 }
 
 void chip8::sknp() {
     u8 x = get_x(opcode);
-    pc   = pc + (keypad[v[x]] ? 0 : 2);
+    if (!keypad[v[x]])
+        pc += 2;
 }
 
 void chip8::ld_vx_dt() {
@@ -333,12 +330,12 @@ void chip8::str_b() {
 
 void chip8::str_r() {
     u8 x = get_x(opcode);
-    for (usize idx = 0; i <= x; idx++)
+    for (usize idx = 0; idx <= x; idx++)
         memory[i + idx] = v[idx];
 }
 
 void chip8::read_r() {
     u8 x = get_x(opcode);
-    for (usize idx = 0; i <= x; idx++)
+    for (usize idx = 0; idx <= x; idx++)
         v[idx] = memory[i + idx];
 }

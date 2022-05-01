@@ -10,7 +10,13 @@ You can find more about CHIP-8 here:
 ## Yes, I know!
 I know that technically this is more like a interpreter & virtual machine implementation than a real "emulator". But.... emulator sounds cool.
 
-## Features
+## TODO
+The project is not fully implemented, here are some stuff I still need to add:
+* Keyboard input handling
+* Add timers & sounds
+* GUI debugger & visualizer
+
+## (Planned) Features
 * CHIP-8 virtual machine
 * CHIP-8 interpreter
 * CHIP-8 GUI debugger
@@ -18,7 +24,7 @@ I know that technically this is more like a interpreter & virtual machine implem
 ## Screenshots
 
 ## Building
-To build this project, you will need SDL2 and ImGui libraries. If you have them correctly installed, just run:
+To build this project, you will need SFML libraries. If you have them correctly installed, just run:
 
 `make`
 
@@ -29,7 +35,9 @@ I have included some ROMs by default inside `roms/` folder, but in case you wann
 
 After building, you can just run:
 
-`./main <ROM_PATH>`
+`bin/chip8 <ROM_PATH>`
+
+e.g: `bin/chip8 roms/PONG`
 
 ## Keybinds
 
