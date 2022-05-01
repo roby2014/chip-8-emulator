@@ -7,6 +7,8 @@
 #include "utils.hpp"
 
 chip8::chip8() {
+    std::srand((unsigned int) time(nullptr));
+
     load_fonts();
     pc = START_ADDR;
 
@@ -45,8 +47,6 @@ chip8::chip8() {
         {0xF033, 0xF0FF, &chip8::str_b}, // 0xFX33
         {0xF055, 0xF0FF, &chip8::str_r}, // 0xFX55
         {0xF065, 0xF0FF, &chip8::read_r}}}; // 0xFX65
-
-    std::srand((unsigned int) time(nullptr));
 }
 
 chip8::~chip8() {}
