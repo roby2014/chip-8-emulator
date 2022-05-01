@@ -152,55 +152,46 @@ void chip8::call() {
 void chip8::seq_kk() {
     u8 x  = get_x(opcode);
     u8 kk = get_kk(opcode);
-    pc    = pc + (v[x] == kk ? 2 : 0);
+    if (v[x] == kk)
+        pc += 2;
 }
 
 void chip8::sne_kk() {
     u8 x  = get_x(opcode);
     u8 kk = get_kk(opcode);
-    pc    = pc + (v[x] != kk ? 2 : 0);
+    if (v[x] != kk)
+        pc += 2;
 }
 
 void chip8::seq() {
     u8 x = get_x(opcode);
     u8 y = get_y(opcode);
-    pc   = pc + (v[x] == v[y] ? 2 : 0);
+    if (v[x] == v[y])
+        pc += 2;
 }
 
 void chip8::ld_kk() {
-    u8 x  = get_x(opcode);
-    u8 kk = get_kk(opcode);
-    v[x]  = kk;
+    v[get_x(opcode)] = get_kk(opcode);
 }
 
 void chip8::add_kk() {
-    u8 x  = get_x(opcode);
-    u8 kk = get_kk(opcode);
-    v[x] += kk;
+    v[get_x(opcode)] += get_kk(opcode);
 }
 
 void chip8::ld() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    v[x] = v[y];
+    v[get_x(opcode)] = v[get_y(opcode)];
 }
 
 void chip8::logic_or() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    v[x] |= v[y];
+    v[get_x(opcode)] |= v[get_y(opcode)];
 }
 
 void chip8::logic_and() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    v[x] &= v[y];
+    v[get_x(opcode)] &= v[get_y(opcode)];
 }
 
 void chip8::logic_xor() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    v[x] ^= v[y];
+    v[get_x(opcode)] ^= v[get_y(opcode)];
 }
 
 void chip8::add() {
@@ -219,9 +210,8 @@ void chip8::sub() {
 }
 
 void chip8::shr() {
-    u8 x = get_x(opcode);
-    // u8 y   = get_y(opcode);
-    v[0xF] = (v[x] & 0x1);
+    u8 x   = get_x(opcode);
+    v[0xF] = (v[x] & 1);
     v[x] >>= 1;
 }
 
@@ -233,17 +223,16 @@ void chip8::subn() {
 }
 
 void chip8::shl() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    // TODO
-    v[0xF] = v[x] & 0x0080;
+    u8 x   = get_x(opcode);
+    v[0xF] = (v[x] >> 7);
     v[x] <<= 1;
 }
 
 void chip8::sne() {
     u8 x = get_x(opcode);
     u8 y = get_y(opcode);
-    pc   = pc + (v[x] != v[y] ? 2 : 0);
+    if (v[x] != v[y])
+        pc += 2;
 }
 
 void chip8::ld_i() {
@@ -261,8 +250,26 @@ void chip8::rnd() {
 }
 
 void chip8::drw() {
-    u8 n = get_lowest_nibble(opcode);
+    // FIXME maybe, not sure if this works properly
+    v[0xF]     = 0;
+    auto cords = std::make_pair(v[get_x(opcode)] % 64, v[get_y(opcode)] % 32);
+    u8 n       = get_lowest_nibble(opcode);
+
     for (usize row = 0; row < n; row++) {
+        u8 sprite = memory[i + row];
+
+        for (usize col = 0; col < 8; col++) {
+            auto idx       = (cords.first + col) + ((cords.second + row) * 64);
+            u8 sprite_px   = sprite & (0x80 >> col);
+            u32* screen_px = &video[idx];
+
+            if (sprite_px) {
+                if (*screen_px) {
+                    v[0xF] = 1;
+                }
+                *screen_px ^= sprite_px;
+            }
+        }
     }
 }
 
@@ -310,9 +317,18 @@ void chip8::add_i() {
 }
 
 void chip8::ld_f() {
+    i = v[get_x(opcode)] * 5;
 }
 
 void chip8::str_b() {
+    u8 val        = v[get_x(opcode)];
+    u8 ones       = val % 10;
+    val           = val / 10;
+    u8 tens       = val % 10;
+    u8 hundreds   = val / 10;
+    memory[i]     = hundreds;
+    memory[i + 1] = tens;
+    memory[i + 2] = ones;
 }
 
 void chip8::str_r() {
