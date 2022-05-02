@@ -10,7 +10,7 @@ chip8::chip8() {
     std::srand((unsigned int) time(nullptr));
 
     load_fonts();
-    pc = START_ADDR;
+    _pc = START_ADDR;
 
     opcode_table = {{{0x00E0, 0xFFFF, &chip8::cls}, // 0x00E0
         {0x00EE, 0xFFFF, &chip8::ret}, // 0x00EE
@@ -72,7 +72,7 @@ void chip8::load_fonts() {
     };
 
     for (usize i = 0; i < fontset.size(); i++) {
-        memory[i] = fontset[i];
+        _memory[i] = fontset[i];
     }
 }
 
@@ -89,7 +89,7 @@ void chip8::load_rom(const std::string& filename) {
             fprintf(stderr, "[-] %s's ROM data exceeds %d bytes \n", filename.c_str(), MEMORY_SIZE);
             exit(-1);
         }
-        memory[i] = static_cast<u8>(c);
+        _memory[i] = static_cast<u8>(c);
     }
 
     ifs.close();
@@ -97,26 +97,26 @@ void chip8::load_rom(const std::string& filename) {
 
 void chip8::load_rom(const std::vector<u8>& raw_data) {
     for (usize idx = START_ADDR; const auto& b : raw_data) {
-        memory[idx] = b;
+        _memory[idx] = b;
         idx++;
     }
 }
 
 u32 chip8::get_pixel(usize idx) {
-    return video[idx];
+    return _video[idx];
 }
 
 void chip8::run() {
-    opcode = (memory[pc] << 8 | memory[pc + 1]);
+    _opcode = (_memory[_pc] << 8 | _memory[_pc + 1]);
 
-    u8 hnibble = get_highest_nibble(opcode);
+    u8 hnibble = get_highest_nibble(_opcode);
     // printf("%02x %02x ; opcode = %04x ; nibble = %01x ", memory[pc], memory[pc + 1], opcode, hnibble);
 
-    pc += 2;
+    _pc += 2;
 
     bool found = false;
     for (const auto& op : opcode_table) {
-        if (op._opcode == (opcode & op._mask)) {
+        if (op._opcode == (_opcode & op._mask)) {
             found = true;
             (this->*(op._fn))();
             break;
@@ -131,140 +131,130 @@ void chip8::run() {
 }
 
 void chip8::cls() {
-    video.fill(0);
+    _video.fill(0);
 }
 
 void chip8::ret() {
-    pc = stack[--sp];
+    _pc = _stack[--_sp];
 }
 
 void chip8::sys() {}
 
 void chip8::jp() {
-    pc = get_nnn(opcode);
+    _pc = get_nnn(_opcode);
 }
 
 void chip8::call() {
-    stack[sp++] = pc;
-    pc          = get_nnn(opcode);
+    _stack[_sp++] = _pc;
+    _pc          = get_nnn(_opcode);
 }
 
 void chip8::seq_kk() {
-    u8 x  = get_x(opcode);
-    u8 kk = get_kk(opcode);
-    if (v[x] == kk)
-        pc += 2;
+    if (_v[get_x(_opcode)] == get_kk(_opcode))
+        _pc += 2;
 }
 
 void chip8::sne_kk() {
-    u8 x  = get_x(opcode);
-    u8 kk = get_kk(opcode);
-    if (v[x] != kk)
-        pc += 2;
+    if (_v[get_x(_opcode)] != get_kk(_opcode))
+        _pc += 2;
 }
 
 void chip8::seq() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    if (v[x] == v[y])
-        pc += 2;
+    if (_v[get_x(_opcode)] == _v[get_y(_opcode)])
+        _pc += 2;
 }
 
 void chip8::ld_kk() {
-    v[get_x(opcode)] = get_kk(opcode);
+    _v[get_x(_opcode)] = get_kk(_opcode);
 }
 
 void chip8::add_kk() {
-    v[get_x(opcode)] += get_kk(opcode);
+    _v[get_x(_opcode)] += get_kk(_opcode);
 }
 
 void chip8::ld() {
-    v[get_x(opcode)] = v[get_y(opcode)];
+    _v[get_x(_opcode)] = _v[get_y(_opcode)];
 }
 
 void chip8::logic_or() {
-    v[get_x(opcode)] |= v[get_y(opcode)];
+    _v[get_x(_opcode)] |= _v[get_y(_opcode)];
 }
 
 void chip8::logic_and() {
-    v[get_x(opcode)] &= v[get_y(opcode)];
+    _v[get_x(_opcode)] &= _v[get_y(_opcode)];
 }
 
 void chip8::logic_xor() {
-    v[get_x(opcode)] ^= v[get_y(opcode)];
+    _v[get_x(_opcode)] ^= _v[get_y(_opcode)];
 }
 
 void chip8::add() {
-    u8 x    = get_x(opcode);
-    u8 y    = get_y(opcode);
-    u16 sum = v[x] + v[y];
-    v[0xF]  = (sum > 0xFF ? 1 : 0);
-    v[x]    = (sum & 0xFF);
+    u8 x    = get_x(_opcode);
+    u8 y    = get_y(_opcode);
+    u16 sum = _v[x] + _v[y];
+    _v[0xF]  = (sum > 0xFF ? 1 : 0);
+    _v[x]    = (sum & 0xFF);
 }
 
 void chip8::sub() {
-    u8 x   = get_x(opcode);
-    u8 y   = get_y(opcode);
-    v[0xF] = (v[x] < v[y] ? 1 : 0);
-    v[x] -= v[y];
+    u8 x   = get_x(_opcode);
+    u8 y   = get_y(_opcode);
+    _v[0xF] = (_v[x] < _v[y] ? 1 : 0);
+    _v[x] -= _v[y];
 }
 
 void chip8::shr() {
-    u8 x   = get_x(opcode);
-    v[0xF] = (v[x] & 1);
-    v[x] >>= 1;
+    u8 x   = get_x(_opcode);
+    _v[0xF] = (_v[x] & 1);
+    _v[x] >>= 1;
 }
 
 void chip8::subn() {
-    u8 x   = get_x(opcode);
-    u8 y   = get_y(opcode);
-    v[0xF] = (v[y] > v[x] ? 1 : 0);
-    v[x]   = v[y] - v[x];
+    u8 x   = get_x(_opcode);
+    u8 y   = get_y(_opcode);
+    _v[0xF] = (_v[y] > _v[x] ? 1 : 0);
+    _v[x]   = _v[y] - _v[x];
 }
 
 void chip8::shl() {
-    u8 x   = get_x(opcode);
-    v[0xF] = (v[x] >> 7);
-    v[x] <<= 1;
+    u8 x   = get_x(_opcode);
+    _v[0xF] = (_v[x] >> 7);
+    _v[x] <<= 1;
 }
 
 void chip8::sne() {
-    u8 x = get_x(opcode);
-    u8 y = get_y(opcode);
-    if (v[x] != v[y])
-        pc += 2;
+    if (_v[get_x(_opcode)] != _v[get_y(_opcode)])
+        _pc += 2;
 }
 
 void chip8::ld_i() {
-    i = get_nnn(opcode);
+    _i = get_nnn(_opcode);
 }
 
 void chip8::jpo() {
-    pc = get_nnn(opcode) + v[0];
+    _pc = get_nnn(_opcode) + _v[0];
 }
 
 void chip8::rnd() {
-    u8 x  = get_x(opcode);
-    u8 kk = get_kk(opcode);
-    v[x]  = (std::rand() % 0xFF) & kk;
+    _v[get_x(_opcode)] = (std::rand() % 0xFF) & get_kk(_opcode);
 }
 
 void chip8::drw() {
-    v[0xF]     = 0;
-    auto cords = point_t(v[get_x(opcode)] % CHIP8_WIDTH, v[get_y(opcode)] % CHIP8_HEIGHT);
-    u8 n       = get_lowest_nibble(opcode);
+    _v[0xF]     = 0;
+    auto cords = point_t(_v[get_x(_opcode)] % CHIP8_WIDTH, _v[get_y(_opcode)] % CHIP8_HEIGHT);
+    u8 n       = get_lowest_nibble(_opcode);
 
     for (usize row = 0; row < n; row++) {
-        u8 sprite = memory[i + row];
+        u8 sprite = _memory[_i + row];
 
         for (usize col = 0; col < 8; col++) {
             auto idx       = (cords.x + col) + ((cords.y + row) * CHIP8_WIDTH);
             u8 sprite_px   = sprite & (0x80 >> col);
-            u32* screen_px = &video[idx];
+            u32* screen_px = &_video[idx];
 
             if (sprite_px) {
                 if (*screen_px) {
-                    v[0xF] = 1;
+                    _v[0xF] = 1;
                 }
                 *screen_px ^= 1;
             }
@@ -273,28 +263,25 @@ void chip8::drw() {
 }
 
 void chip8::skp() {
-    u8 x = get_x(opcode);
-    if (keypad[v[x]])
-        pc += 2;
+    if (_keypad[_v[get_x(_opcode)]])
+        _pc += 2;
 }
 
 void chip8::sknp() {
-    u8 x = get_x(opcode);
-    if (!keypad[v[x]])
-        pc += 2;
+    if (!_keypad[_v[get_x(_opcode)]])
+        _pc += 2;
 }
 
 void chip8::ld_vx_dt() {
-    u8 x = get_x(opcode);
-    v[x] = delay_timer;
+    _v[get_x(_opcode)] = _delay_timer;
 }
 
 void chip8::ld_k() {
     bool pressed = false;
-    for (usize idx = 0; const auto& key : keypad) {
+    for (usize idx = 0; const auto& key : _keypad) {
         if (key == 1) {
-            u8 x    = get_x(opcode);
-            v[x]    = idx;
+            u8 x    = get_x(_opcode);
+            _v[x]    = idx;
             pressed = true;
             return;
         }
@@ -302,44 +289,44 @@ void chip8::ld_k() {
     }
 
     if (!pressed)
-        pc -= 2;
+        _pc -= 2;
 }
 
 void chip8::ld_dt() {
-    delay_timer = get_x(opcode);
+    _delay_timer = get_x(_opcode);
 }
 
 void chip8::ld_st() {
-    sound_timer = get_x(opcode);
+    _sound_timer = get_x(_opcode);
 }
 
 void chip8::add_i() {
-    i += get_x(opcode);
+    _i += get_x(_opcode);
 }
 
 void chip8::ld_f() {
-    i = v[get_x(opcode)] * 5;
+    _i = _v[get_x(_opcode)] * 5;
 }
 
 void chip8::str_b() {
-    u8 val        = v[get_x(opcode)];
+    u8 val        = _v[get_x(_opcode)];
     u8 ones       = val % 10;
     val           = val / 10;
     u8 tens       = val % 10;
     u8 hundreds   = val / 10;
-    memory[i]     = hundreds;
-    memory[i + 1] = tens;
-    memory[i + 2] = ones;
+    _memory[_i]     = hundreds;
+    _memory[_i + 1] = tens;
+    _memory[_i + 2] = ones;
 }
 
 void chip8::str_r() {
-    u8 x = get_x(opcode);
-    for (usize idx = 0; idx <= x; idx++)
-        memory[i + idx] = v[idx];
+    u8 x = get_x(_opcode);
+    for (usize i = 0; i <= x; i++)
+        _memory[_i + i] = _v[i];
 }
 
 void chip8::read_r() {
-    u8 x = get_x(opcode);
-    for (usize idx = 0; idx <= x; idx++)
-        v[idx] = memory[i + idx];
+    u8 x = get_x(_opcode);
+    for (usize i = 0; i <= x; i++)
+        _v[i] = _memory[_i + i];
 }

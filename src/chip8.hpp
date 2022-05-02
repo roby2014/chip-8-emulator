@@ -19,17 +19,17 @@
 // CHIP-8 virtual machine implementation
 class chip8 {
 private:
-    std::array<u8, MEMORY_SIZE> memory{};
-    std::array<u32, DISPLAY_SIZE> video{};
-    std::array<u8, TOTAL_REGISTERS> v{};
-    u16 i{};
-    u16 pc{};
-    u8 sp{};
-    std::array<u16, STACK_SIZE> stack{};
-    u8 delay_timer{};
-    u8 sound_timer{};
-    std::array<u8, MAX_KEYS> keypad{};
-    u16 opcode{};
+    std::array<u8, MEMORY_SIZE> _memory{};
+    std::array<u32, DISPLAY_SIZE> _video{};
+    std::array<u8, TOTAL_REGISTERS> _v{};
+    u16 _i{};
+    u16 _pc{};
+    u8 _sp{};
+    std::array<u16, STACK_SIZE> _stack{};
+    u8 _delay_timer{};
+    u8 _sound_timer{};
+    std::array<u8, MAX_KEYS> _keypad{};
+    u16 _opcode{};
 
     // opcode table
     struct opcode_member {
