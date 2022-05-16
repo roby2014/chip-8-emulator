@@ -24,20 +24,22 @@ The project is not fully implemented, here are some stuff I still need to add:
 ## Screenshots
 
 ## Building
-To build this project, you will need SFML libraries. If you have them correctly installed, just run:
+### Linux
+To build this project, you will CMake and SFML libraries. If you have them correctly installed, this should work out of the box, so just run:
 
-`make`
+`mkdir build && cd build && cmake .. && make`
 
-*(TODO: proper explanation on building on different OSes, lib linking, etc...)*
+## Windows
+*(TODO: proper explanation on building on Windows)*
 
 ## Running
 I have included some ROMs by default inside `roms/` folder, but in case you wanna try more/other games, you can download from [this repository](https://github.com/kripod/chip8-roms).
 
 After building, you can just run:
 
-`bin/chip8 <ROM_PATH>`
+`./chip8 <ROM_PATH>`
 
-e.g: `bin/chip8 roms/PONG`
+e.g: `./chip8 roms/PONG`
 
 ## Keybinds
 
