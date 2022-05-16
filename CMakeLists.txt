@@ -10,7 +10,7 @@ add_executable(chip8 ${SRC_FILES})
 target_include_directories(chip8 PUBLIC ${CMAKE_CURRENT_DIR}/src)
 
 #SFML
-find_package(SFML 2.5 REQUIRED system window graphics)
+find_package(SFML 2.5.1 REQUIRED system window graphics)
 if(SFML_FOUND)
     target_include_directories(chip8 PUBLIC ${SFML_INCLUDE_DIR}) #FIXME
     target_link_libraries(chip8 sfml-system sfml-window sfml-graphics)

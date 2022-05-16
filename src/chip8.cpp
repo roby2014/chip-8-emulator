@@ -1,5 +1,4 @@
 #include <cstring>
-#include <unistd.h>
 #include <fstream>
 
 #include "chip8.hpp"

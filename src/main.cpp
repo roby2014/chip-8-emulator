@@ -54,5 +54,6 @@ int main(int argc, char** argv) {
         window.display();
     }
 
+    std::cin; // windows things x]
     return 0;
 }
