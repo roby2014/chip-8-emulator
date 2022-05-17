@@ -42,6 +42,8 @@ If you have them correctly installed, it should work out of the box, so run this
 ### Windows (Visual Studio)
 Download git, [CMake latest version](https://cmake.org/download/), [SFML 2.5.1 (Visual C++ 15 (2017) - 32-bit)](https://www.sfml-dev.org/download/sfml/2.5.1/) and Visual Studio 2022.
 
+*make sure you add cmake to PATH*
+
 - Clone the repo and go inside: 
 
     `git clone https://github.com/roby2014/chip-8-emulator && cd chip-8-emulator`
@@ -55,13 +57,14 @@ Download git, [CMake latest version](https://cmake.org/download/), [SFML 2.5.1 (
     - or just run: `cmake --build build --config Release`
 
 - Running:
-    - Either drag a rom file into the exe or run by command line: 
+    - Since we use dynamic linking, you will need to move all the `.dll` files from `C:\CPP_TOOLS\SFML\bin\` into your .exe folder
+    - Now either drag a rom file into the exe or run by command line: 
 
         `cd C:\Coding\chip-8-emulator\build\Release\`
 
         `chip8.exe C:\Coding\chip-8-emulator\roms\chip8.ch8`
 
-*README: Since we use dynamic linking, you will need to move all the `.dll` files from `C:\CPP_TOOLS\SFML\bin\` into your .exe folder.*
+
 
 ## More ROMS
 I have included some ROMs by default inside `roms/` folder, but in case you wanna try more/other games, you can download from [this repository](https://github.com/kripod/chip8-roms).
