@@ -51,11 +51,12 @@ Download git, [CMake latest version](https://cmake.org/download/), [SFML 2.5.1 (
 
 - Compile the project:
     - Open the VS solution and build it
-    - or just run: `cmake --build build`
+    - or just run: `cmake --build build --config Release`
 
 - Running:
-    - First, move all the `.dll` files from `C:\CPP_TOOLS\SFML\bin\` into your .exe folder, if you did everything correctly, it should probably be `C:\Coding\chip-8-emulator\build\Debug\`.
-    - After that, either drag a rom file into the exe or run by command line: 
+    - Either drag a rom file into the exe or run by command line: 
+
+        `cd C:\Coding\chip-8-emulator\build\Release\`
 
         `chip8.exe C:\Coding\chip-8-emulator\roms\chip8.ch8`
 
