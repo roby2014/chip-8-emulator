@@ -15,6 +15,7 @@ The project is not fully implemented, here are some stuff I still need to add:
 * Keyboard input handling
 * Add timers & sounds
 * GUI debugger & visualizer
+* Windows + Linux bash scripts to compile
 
 ## (Planned) Features
 * CHIP-8 virtual machine

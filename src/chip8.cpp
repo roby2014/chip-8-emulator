@@ -280,7 +280,7 @@ void chip8::ld_k() {
     for (usize idx = 0; const auto& key : _keypad) {
         if (key == 1) {
             u8 x    = get_x(_opcode);
-            _v[x]    = idx;
+            _v[x]   = static_cast<u8>(idx);
             pressed = true;
             return;
         }
