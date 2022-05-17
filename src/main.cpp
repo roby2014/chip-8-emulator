@@ -2,6 +2,8 @@
 #include <iostream>
 
 #include "chip8.hpp"
+#include "imgui-SFML.h"
+#include "imgui.h"
 #include <SFML/Graphics.hpp>
 
 #define WINDOW_WIDTH  640
@@ -23,17 +25,25 @@ int main(int argc, char** argv) {
 #endif
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "CHIP-8 Emulator");
+    ImGui::SFML::Init(window);
 
+    sf::Clock clk;
     while (window.isOpen()) {
         // TODO: handle keyboard input
         sf::Event event;
         while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(window, event);
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         // fetch, decode, execute..
         emu.run();
+        ImGui::SFML::Update(window, clk.restart());
+
+        ImGui::Begin("Hello, world!");
+        ImGui::Button("Look at this pretty button");
+        ImGui::End();
 
         // draw
         auto row = 0;
@@ -51,9 +61,12 @@ int main(int argc, char** argv) {
         }
 
         // display
+        ImGui::SFML::Render(window);
         window.display();
     }
 
+    window.close();
+    ImGui::SFML::Shutdown();
     std::cin; // windows things x]
     return 0;
 }
