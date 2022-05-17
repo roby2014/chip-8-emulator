@@ -61,6 +61,8 @@ Download git, [CMake latest version](https://cmake.org/download/), [SFML 2.5.1 (
 
         `chip8.exe C:\Coding\chip-8-emulator\roms\chip8.ch8`
 
+*README: Since we use dynamic linking, you will need to move all the `.dll` files from `C:\CPP_TOOLS\SFML\bin\` into your .exe folder.*
+
 ## More ROMS
 I have included some ROMs by default inside `roms/` folder, but in case you wanna try more/other games, you can download from [this repository](https://github.com/kripod/chip8-roms).
 ## Keybinds
