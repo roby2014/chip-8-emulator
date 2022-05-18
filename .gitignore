@@ -2,3 +2,4 @@
 .vs
 roms/imgui.ini
 build
+out

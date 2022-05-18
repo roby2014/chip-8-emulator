@@ -12,6 +12,7 @@ add_executable(chip8 ${SRC_FILES} ${IMGUI_SFML})
 # imgui setup
 add_library(imgui STATIC
     external/imgui/imgui.cpp
+    external/imgui/imgui_demo.cpp
     external/imgui/imgui_draw.cpp
     external/imgui/imgui_tables.cpp
     external/imgui/imgui_widgets.cpp

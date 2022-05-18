@@ -51,8 +51,12 @@ Download git, [CMake latest version](https://cmake.org/download/), [SFML 2.5.1 (
     *(make sure you specify your SFML path)*
 
 - Compile the project:
-    - Open the VS solution and build it
-    - or just run: `cmake --build build --config Release`
+    - Visual Studio
+        - Open the solution
+        - Change `SFML_DIR` value inside `CMakeSettings.json`
+        - Build it
+    - Terminal
+        - Just run: `cmake --build build --config Release`
 
 - Running:
     - Either drag a rom file into the exe or run by command line: 
