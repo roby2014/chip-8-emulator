@@ -1,8 +1,7 @@
-#include <cstring>
+/*#include <cstring>
 #include <iostream>
 
 #include "chip8.hpp"
-#include "imgui-SFML.h"
 #include "imgui.h"
 #include <SFML/Graphics.hpp>
 
@@ -25,25 +24,18 @@ int main(int argc, char** argv) {
 #endif
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "CHIP-8 Emulator");
-    ImGui::SFML::Init(window);
 
     sf::Clock clk;
     while (window.isOpen()) {
         // TODO: handle keyboard input
         sf::Event event;
         while (window.pollEvent(event)) {
-            ImGui::SFML::ProcessEvent(window, event);
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         // fetch, decode, execute..
         emu.run();
-        ImGui::SFML::Update(window, clk.restart());
-
-        ImGui::Begin("Hello, world!");
-        ImGui::Button("Look at this pretty button");
-        ImGui::End();
 
         // draw
         auto row = 0;
@@ -52,8 +44,8 @@ int main(int argc, char** argv) {
 
             sf::RectangleShape pixel(sf::Vector2f(SCALE_FACTOR, SCALE_FACTOR));
             pixel.setPosition(col * SCALE_FACTOR, row * SCALE_FACTOR);
-            pixel.setFillColor(emu.get_pixel(idx) == 1 ? sf::Color::White : sf::Color::Black);
-            window.draw(pixel);
+            pixel.setFillColor(emu.get_pixel(idx) == 1 ? sf::Color::White :
+sf::Color::Black); window.draw(pixel);
 
             if ((idx + 1) % CHIP8_WIDTH == 0) {
                 row++;
@@ -61,12 +53,83 @@ int main(int argc, char** argv) {
         }
 
         // display
-        ImGui::SFML::Render(window);
         window.display();
     }
 
     window.close();
-    ImGui::SFML::Shutdown();
     std::cin; // windows things x]
     return 0;
+}*/
+#include "imgui.h"
+#include "imgui-SFML.h"
+
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Event.hpp>
+
+void code_dock() {
+    ImGui::Begin("Code");
+
+    // Note: we are using a fixed-sized buffer for simplicity here. See ImGuiInputTextFlags_CallbackResize
+        // and the code in misc/cpp/imgui_stdlib.h for how to setup InputText() for dynamically resizing strings.
+    static char text[1024 * 16] =
+        "/*\n"
+        " int main() {\n"
+        "   return 0;\n"
+        " }\n"
+        "label:\n"
+        "\tlock cmpxchg8b eax\n";
+
+    static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+    ImGui::CheckboxFlags("ImGuiInputTextFlags_ReadOnly", &flags, ImGuiInputTextFlags_ReadOnly);
+    ImGui::CheckboxFlags("ImGuiInputTextFlags_AllowTabInput", &flags, ImGuiInputTextFlags_AllowTabInput);
+    ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+    ImGui::TreePop();
+
+    ImGui::End();
+}
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(1200, 600), "ImGui + SFML = <3");
+    window.setFramerateLimit(60);
+    ImGui::SFML::Init(window);
+
+    sf::CircleShape shape(100.f);
+    shape.setFillColor(sf::Color::Green);
+
+    sf::Clock deltaClock;
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(window, event);
+
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+
+        ImGui::SFML::Update(window, deltaClock.restart());
+
+        auto& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+        
+        ImGui::ShowDemoWindow();
+
+        code_dock();
+
+        ImGui::Begin("Registers");
+        ImGui::End();
+
+        ImGui::Begin("Memory");
+        ImGui::End();
+
+        window.clear();
+        window.draw(shape);
+        ImGui::SFML::Render(window);
+        window.display();
+    }
+
+    ImGui::SFML::Shutdown();
 }
