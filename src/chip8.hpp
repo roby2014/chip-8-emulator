@@ -2,6 +2,7 @@
 #define CHIP8_HPP
 
 #include <array>
+#include <utility>
 #include <vector>
 
 #include "types.hpp"
@@ -20,7 +21,6 @@
 class chip8 {
 private:
     std::array<u8, MEMORY_SIZE> _memory{};
-    std::array<u32, DISPLAY_SIZE> _video{};
     std::array<u8, TOTAL_REGISTERS> _v{};
     u16 _i{};
     u16 _pc{};
@@ -40,6 +40,7 @@ private:
     std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
 public:
+    std::array<u32, DISPLAY_SIZE> _video{};
     chip8();
     ~chip8();
 
