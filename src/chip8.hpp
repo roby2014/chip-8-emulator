@@ -2,24 +2,25 @@
 #define CHIP8_HPP
 
 #include <array>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "types.hpp"
 
-#define MEMORY_SIZE      4096
-#define STACK_SIZE       16
-#define TOTAL_REGISTERS  16
-#define START_ADDR       512
-#define DISPLAY_SIZE     64 * 32
+#define MEMORY_SIZE 4096
+#define STACK_SIZE 16
+#define TOTAL_REGISTERS 16
+#define START_ADDR 512
+#define DISPLAY_SIZE 64 * 32
 #define MAX_INSTRUCTIONS 35
-#define MAX_KEYS         16
-#define CHIP8_WIDTH      64
-#define CHIP8_HEIGHT     32
+#define MAX_KEYS 16
+#define CHIP8_WIDTH 64
+#define CHIP8_HEIGHT 32
 
 // CHIP-8 virtual machine implementation
 class chip8 {
-private:
+  private:
     std::array<u8, MEMORY_SIZE> _memory{};
     std::array<u8, TOTAL_REGISTERS> _v{};
     u16 _i{};
@@ -39,7 +40,7 @@ private:
     };
     std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
-public:
+  public:
     std::array<u32, DISPLAY_SIZE> _video{};
     chip8();
     ~chip8();
@@ -50,12 +51,12 @@ public:
     /// Loads ROM data into memory
     /// @param filename ROM file name/path
     /// Function exits the program if an error occurred
-    void load_rom(const std::string& filename);
+    void load_rom(const std::string &filename);
 
     /// Loads ROM data into memory
     /// @param raw_data ROM data, as raw bytes
     /// This function can be used to debug/test custom ROMs
-    void load_rom(const std::vector<u8>& raw_data);
+    void load_rom(const std::vector<u8> &raw_data);
 
     /// Returns __video's pixel at address __idx
     /// This can be used on the draw function to check if we should draw
@@ -64,7 +65,7 @@ public:
     /// Fetch, decode, execute...
     void run();
 
-public:
+  public:
     /*********************
         CPU INSTRUCTIONS
     **********************/
