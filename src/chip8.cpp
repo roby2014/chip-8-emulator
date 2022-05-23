@@ -48,7 +48,8 @@ chip8::chip8() {
                      {0xF065, 0xF0FF, &chip8::read_r}}};  // 0xFX65
 }
 
-chip8::~chip8() {}
+chip8::~chip8() {
+}
 
 void chip8::load_fonts() {
     std::array<u8, 80> fontset = {
@@ -118,8 +119,6 @@ void chip8::load_rom(const std::vector<u8> &raw_data) {
     }
 }
 
-u32 chip8::get_pixel(usize idx) { return _video[idx]; }
-
 void chip8::run() {
     _opcode = (_memory[_pc] << 8 | _memory[_pc + 1]);
 
@@ -145,13 +144,20 @@ void chip8::run() {
     // printf("\n");
 }
 
-void chip8::cls() { _video.fill(0); }
+void chip8::cls() {
+    _video.fill(0);
+}
 
-void chip8::ret() { _pc = _stack[--_sp]; }
+void chip8::ret() {
+    _pc = _stack[--_sp];
+}
 
-void chip8::sys() {}
+void chip8::sys() {
+}
 
-void chip8::jp() { _pc = get_nnn(_opcode); }
+void chip8::jp() {
+    _pc = get_nnn(_opcode);
+}
 
 void chip8::call() {
     _stack[_sp++] = _pc;
@@ -173,17 +179,29 @@ void chip8::seq() {
         _pc += 2;
 }
 
-void chip8::ld_kk() { _v[get_x(_opcode)] = get_kk(_opcode); }
+void chip8::ld_kk() {
+    _v[get_x(_opcode)] = get_kk(_opcode);
+}
 
-void chip8::add_kk() { _v[get_x(_opcode)] += get_kk(_opcode); }
+void chip8::add_kk() {
+    _v[get_x(_opcode)] += get_kk(_opcode);
+}
 
-void chip8::ld() { _v[get_x(_opcode)] = _v[get_y(_opcode)]; }
+void chip8::ld() {
+    _v[get_x(_opcode)] = _v[get_y(_opcode)];
+}
 
-void chip8::logic_or() { _v[get_x(_opcode)] |= _v[get_y(_opcode)]; }
+void chip8::logic_or() {
+    _v[get_x(_opcode)] |= _v[get_y(_opcode)];
+}
 
-void chip8::logic_and() { _v[get_x(_opcode)] &= _v[get_y(_opcode)]; }
+void chip8::logic_and() {
+    _v[get_x(_opcode)] &= _v[get_y(_opcode)];
+}
 
-void chip8::logic_xor() { _v[get_x(_opcode)] ^= _v[get_y(_opcode)]; }
+void chip8::logic_xor() {
+    _v[get_x(_opcode)] ^= _v[get_y(_opcode)];
+}
 
 void chip8::add() {
     u8 x = get_x(_opcode);
@@ -224,9 +242,13 @@ void chip8::sne() {
         _pc += 2;
 }
 
-void chip8::ld_i() { _i = get_nnn(_opcode); }
+void chip8::ld_i() {
+    _i = get_nnn(_opcode);
+}
 
-void chip8::jpo() { _pc = get_nnn(_opcode) + _v[0]; }
+void chip8::jpo() {
+    _pc = get_nnn(_opcode) + _v[0];
+}
 
 void chip8::rnd() {
     _v[get_x(_opcode)] = (std::rand() % 0xFF) & get_kk(_opcode);
@@ -266,7 +288,9 @@ void chip8::sknp() {
         _pc += 2;
 }
 
-void chip8::ld_vx_dt() { _v[get_x(_opcode)] = _delay_timer; }
+void chip8::ld_vx_dt() {
+    _v[get_x(_opcode)] = _delay_timer;
+}
 
 void chip8::ld_k() {
     bool pressed = false;
@@ -284,13 +308,21 @@ void chip8::ld_k() {
         _pc -= 2;
 }
 
-void chip8::ld_dt() { _delay_timer = get_x(_opcode); }
+void chip8::ld_dt() {
+    _delay_timer = get_x(_opcode);
+}
 
-void chip8::ld_st() { _sound_timer = get_x(_opcode); }
+void chip8::ld_st() {
+    _sound_timer = get_x(_opcode);
+}
 
-void chip8::add_i() { _i += get_x(_opcode); }
+void chip8::add_i() {
+    _i += get_x(_opcode);
+}
 
-void chip8::ld_f() { _i = _v[get_x(_opcode)] * 5; }
+void chip8::ld_f() {
+    _i = _v[get_x(_opcode)] * 5;
+}
 
 void chip8::str_b() {
     u8 val = _v[get_x(_opcode)];

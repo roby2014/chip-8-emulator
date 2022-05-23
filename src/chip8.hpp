@@ -60,7 +60,9 @@ class chip8 {
 
     /// Returns __video's pixel at address __idx
     /// This can be used on the draw function to check if we should draw
-    u32 get_pixel(usize idx);
+    u32 get_pixel(usize idx) const {
+        return _video[idx];
+    };
 
     /// Fetch, decode, execute...
     void run();

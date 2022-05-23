@@ -37,6 +37,8 @@ class gui {
     void handle_events();
 
     /// Returns true if the window is open
-    bool running() const { return _window.isOpen(); }
+    bool running() const {
+        return _window.isOpen();
+    }
 };
 #endif

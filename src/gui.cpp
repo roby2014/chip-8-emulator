@@ -15,7 +15,9 @@ gui::gui(bool dbg)
     ImGui::SFML::Init(_window);
 }
 
-gui::~gui() { ImGui::SFML::Shutdown(); }
+gui::~gui() {
+    ImGui::SFML::Shutdown();
+}
 
 void gui::registers_dock() {
     ImGui::Begin("Registers");
