@@ -17,6 +17,7 @@
 #define MAX_KEYS 16
 #define CHIP8_WIDTH 64
 #define CHIP8_HEIGHT 32
+#define SCALE_FACTOR 10
 
 // CHIP-8 virtual machine implementation
 class chip8 {
@@ -29,6 +30,7 @@ class chip8 {
     std::array<u16, STACK_SIZE> _stack{};
     u8 _delay_timer{};
     u8 _sound_timer{};
+    std::array<u32, DISPLAY_SIZE> _video{};
     std::array<u8, MAX_KEYS> _keypad{};
     u16 _opcode{};
 
@@ -41,9 +43,11 @@ class chip8 {
     std::array<struct opcode_member, MAX_INSTRUCTIONS> opcode_table{};
 
   public:
-    std::array<u32, DISPLAY_SIZE> _video{};
     chip8();
     ~chip8();
+
+    /// Resets the "virtual machine" aKa all data (registers, video, etc)
+    void reset_chip8();
 
     /// Loads fonts into memory
     void load_fonts();

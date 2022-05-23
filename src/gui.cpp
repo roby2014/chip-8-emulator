@@ -1,4 +1,5 @@
 #include "gui.hpp"
+#include "utils.hpp"
 #include "chip8.hpp"
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -10,9 +11,10 @@
 
 gui::gui(bool dbg)
     : _rom_loaded(false), _DEBUG_MODE(dbg),
-      _window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "CHIP-8 Emulator") {
+      _window(screen_res_to_use<sf::VideoMode>(dbg), "CHIP-8 Emulator") {
     _window.setFramerateLimit(MAX_FPS);
     ImGui::SFML::Init(_window);
+    _texture.create(CHIP8_WIDTH * SCALE_FACTOR, CHIP8_HEIGHT * SCALE_FACTOR);
 }
 
 gui::~gui() {
@@ -20,17 +22,26 @@ gui::~gui() {
 }
 
 void gui::registers_dock() {
-    ImGui::Begin("Registers");
+    ImGui::Begin("Registers", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::End();
 }
 
 void gui::memory_dock() {
-    ImGui::Begin("Memory");
+    ImGui::Begin("Memory", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::End();
+}
+
+void gui::keypad_dock() {
+    ImGui::Begin("Keypad", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::End();
 }
 
 void gui::code_dock() {
-    ImGui::Begin("Code");
+    ImGui::Begin("Code", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     static char text[1024 * 16] = "/*\n"
                                   " int main() {\n"
@@ -48,6 +59,13 @@ void gui::code_dock() {
                               ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16),
                               flags);
 
+    ImGui::End();
+}
+
+void gui::emulator_dock(chip8 *emu) {
+    ImGui::Begin("Emulator", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    draw_emulator(emu, 0);
     ImGui::End();
 }
 
@@ -73,6 +91,7 @@ void gui::show_main_menu_bar(chip8 *emu) {
                     return;
                 }
 #endif
+                // TODO: clear everything from previous ROM
                 emu->load_rom(fname);
                 _rom_loaded = true;
             }
@@ -80,6 +99,8 @@ void gui::show_main_menu_bar(chip8 *emu) {
         } else if (ImGui::MenuItem(_DEBUG_MODE ? "Normal mode"
                                                : "Debug Mode")) {
             _DEBUG_MODE = !_DEBUG_MODE;
+            _window.setSize(screen_res_to_use<sf::Vector2u>(_DEBUG_MODE));
+            _window.setPosition(sf::Vector2i(0, 0));
         } else if (ImGui::MenuItem("Exit")) {
             _window.close();
         }
@@ -87,37 +108,57 @@ void gui::show_main_menu_bar(chip8 *emu) {
     }
 }
 
+void gui::draw_emulator(chip8 *emu, const ImGuiWindowFlags &flags) {
+    if (!_DEBUG_MODE) // only create a new im gui window if not in debug mode
+        ImGui::Begin("Game", nullptr, flags);
+    if (_rom_loaded) {
+        emu->run();
+        auto row = 0;
+        for (usize idx = 0; idx < DISPLAY_SIZE; idx++) {
+            auto col = (idx % CHIP8_WIDTH);
+
+            sf::RectangleShape pixel(sf::Vector2f(SCALE_FACTOR, SCALE_FACTOR));
+            pixel.setPosition(col * SCALE_FACTOR, row * SCALE_FACTOR);
+            pixel.setFillColor(emu->get_pixel(idx) == 1 ? sf::Color::White
+                                                        : sf::Color::Black);
+            _texture.draw(pixel);
+
+            if ((idx + 1) % CHIP8_WIDTH == 0) {
+                row++;
+            }
+        }
+        sf::Sprite sprite(_texture.getTexture());
+        ImGui::Image(sprite);
+    } else {
+        ImGui::Text("No ROM loaded!");
+    }
+    if (!_DEBUG_MODE)
+        ImGui::End();
+}
+
 void gui::display(chip8 *emu) {
     _window.clear();
+
+    // draw a image using ImGui::Image
 
     show_main_menu_bar(emu);
     if (!_DEBUG_MODE) {
         // ImGui::ShowDemoWindow();
-        if (_rom_loaded) {
-            ImGui::Text("Rom is loaded");
-            emu->run();
-            auto row = 0;
-            sf::Sprite sprite;
-            for (usize idx = 0; idx < DISPLAY_SIZE; idx++) {
-                auto col = (idx % CHIP8_WIDTH);
+        const ImGuiViewport *viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        static ImGuiWindowFlags flags =
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
+        draw_emulator(emu, flags);
 
-                sf::RectangleShape pixel(
-                    sf::Vector2f(SCALE_FACTOR, SCALE_FACTOR));
-                pixel.setPosition(col * SCALE_FACTOR, row * SCALE_FACTOR);
-                pixel.setFillColor(emu->get_pixel(idx) == 1 ? sf::Color::White
-                                                            : sf::Color::Black);
-                // window.draw(pixel);
-
-                if ((idx + 1) % CHIP8_WIDTH == 0) {
-                    row++;
-                }
-            }
-        }
     } else {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         code_dock();
         memory_dock();
+        keypad_dock();
+        emulator_dock(emu);
         registers_dock();
     }
 

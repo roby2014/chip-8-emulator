@@ -33,4 +33,14 @@ inline u8 get_kk(const u16 opcode) {
     return (opcode & 0xFF);
 }
 
+/// Returns screen resolution to use
+/// This can be used for functions that either need sf::VideoMode or
+/// sf::Vector2u
+template <typename T> constexpr T screen_res_to_use(bool dbg) {
+    return dbg ? T(MONITOR_WIDTH, MONITOR_HEIGHT)
+               : T(CHIP8_WIDTH * SCALE_FACTOR + 30,
+                   CHIP8_HEIGHT * SCALE_FACTOR + 35);
+    // 30 and 35 are random values to make it look good
+}
+
 #endif

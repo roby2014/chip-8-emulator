@@ -47,7 +47,7 @@ mkdir build && cd build && cmake .. && make
 ```
 
 - Running:
-  - Move `assets/imgui.ini` to your exe folder
+  - `mv ../assets/imgui.ini .`
   - `./chip8`
 
 ### Windows (Visual Studio)
