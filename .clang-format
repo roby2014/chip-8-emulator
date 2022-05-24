@@ -1,4 +1,6 @@
 BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
+PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: None
+ColumnLimit: 95

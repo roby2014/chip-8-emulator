@@ -2,7 +2,7 @@
 #include "chip8.hpp"
 #include "gui.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     bool dbg_mode = true;
     if (argc == 2) {
         // TODO: -d arg
@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     chip8 emu;
 
     while (emu_gui.running()) {
-        emu_gui.handle_events();
+        emu_gui.handle_events(&emu);
         emu_gui.display(&emu);
     }
 }

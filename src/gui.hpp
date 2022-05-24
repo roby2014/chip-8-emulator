@@ -30,19 +30,19 @@ class gui {
     void code_dock();
 
     /// Draws the emulator window
-    void emulator_dock(chip8 *emu);
+    void emulator_dock(chip8* emu);
 
     /// Draws main menu bar
-    void show_main_menu_bar(chip8 *emu);
+    void show_main_menu_bar(chip8* emu);
 
     /// Displays everything
-    void display(chip8 *emu);
+    void display(chip8* emu);
 
     /// Draws the emulator window
-    void draw_emulator(chip8 *emu, const ImGuiWindowFlags &flags);
+    void draw_emulator(chip8* emu, const ImGuiWindowFlags& flags);
 
     /// Handles events
-    void handle_events();
+    void handle_events(chip8* emu);
 
     /// Returns true if the window is open
     bool running() const {

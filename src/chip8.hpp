@@ -55,12 +55,17 @@ class chip8 {
     /// Loads ROM data into memory
     /// @param filename ROM file name/path
     /// Function exits the program if an error occurred
-    void load_rom(const std::string &filename);
+    void load_rom(const std::string& filename);
 
     /// Loads ROM data into memory
     /// @param raw_data ROM data, as raw bytes
     /// This function can be used to debug/test custom ROMs
-    void load_rom(const std::vector<u8> &raw_data);
+    void load_rom(const std::vector<u8>& raw_data);
+
+    /// Sets the keypad state
+    /// @param key_idx key index
+    /// @param state key state
+    void set_key(u8 key_idx, bool state);
 
     /// Returns __video's pixel at address __idx
     /// This can be used on the draw function to check if we should draw
