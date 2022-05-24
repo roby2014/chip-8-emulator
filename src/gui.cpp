@@ -3,6 +3,7 @@
 #include "chip8.hpp"
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include "imgui_memory_editor.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -13,6 +14,7 @@ gui::gui(bool dbg)
     : _rom_loaded(false), _DEBUG_MODE(dbg),
       _window(screen_res_to_use<sf::VideoMode>(dbg), "CHIP-8 Emulator") {
     _window.setFramerateLimit(MAX_FPS);
+    _window.setPosition(sf::Vector2i(0, 0));
     ImGui::SFML::Init(_window);
     _texture.create(CHIP8_WIDTH * SCALE_FACTOR, CHIP8_HEIGHT * SCALE_FACTOR);
 }
@@ -110,8 +112,8 @@ void gui::registers_dock() {
 }
 
 void gui::memory_dock() {
-    ImGui::Begin("Memory", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::End();
+    static MemoryEditor mem_edit;
+    mem_edit.DrawWindow("Memory", &_memory, _memory.size());
 }
 
 void gui::keypad_dock() {
@@ -247,7 +249,7 @@ void gui::display() {
         registers_dock();
     }
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
     ImGui::SFML::Render(_window);
     _window.display();
 }

@@ -18,8 +18,8 @@ using u32 = uint32_t;
 using u64 = uint64_t;
 
 // evil? maybe
-#define MONITOR_WIDTH sf::VideoMode::getDesktopMode().width
-#define MONITOR_HEIGHT sf::VideoMode::getDesktopMode().height
+#define MONITOR_WIDTH sf::VideoMode::getDesktopMode().width - 128
+#define MONITOR_HEIGHT sf::VideoMode::getDesktopMode().height - 128
 
 /// Represents a "point" by (x,y)
 typedef struct point { u32 x, y; } point_t;
