@@ -6,7 +6,7 @@
 
 #define MAX_FPS 60
 
-class gui {
+class gui : public chip8 {
   private:
     bool _rom_loaded;
     bool _DEBUG_MODE;
@@ -24,25 +24,25 @@ class gui {
     void memory_dock();
 
     /// Draws keypad dock
-    void keypad_dock(chip8* emu);
+    void keypad_dock();
 
     /// Draws code dock
     void code_dock();
 
     /// Draws the emulator window
-    void emulator_dock(chip8* emu);
+    void emulator_dock();
 
     /// Draws main menu bar
-    void show_main_menu_bar(chip8* emu);
+    void show_main_menu_bar();
 
     /// Displays everything
-    void display(chip8* emu);
+    void display();
 
     /// Draws the emulator window
-    void draw_emulator(chip8* emu, const ImGuiWindowFlags& flags);
+    void draw_emulator(const ImGuiWindowFlags& flags);
 
     /// Handles events
-    void handle_events(chip8* emu);
+    void handle_events();
 
     /// Returns true if the window is open
     bool running() const {

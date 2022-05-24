@@ -124,14 +124,6 @@ void chip8::load_rom(const std::vector<u8>& raw_data) {
     }
 }
 
-void chip8::set_key_state(u8 key_idx, bool state) {
-    if (key_idx < 0 || key_idx > 15) {
-        return;
-    }
-
-    _keypad[key_idx] = (int)state;
-}
-
 void chip8::run() {
     _opcode = (_memory[_pc] << 8 | _memory[_pc + 1]);
     _pc += 2;

@@ -21,7 +21,7 @@
 
 // CHIP-8 virtual machine implementation
 class chip8 {
-  private:
+  protected:
     std::array<u8, MEMORY_SIZE> _memory{};
     std::array<u8, TOTAL_REGISTERS> _v{};
     u16 _i{};
@@ -61,24 +61,6 @@ class chip8 {
     /// @param raw_data ROM data, as raw bytes
     /// This function can be used to debug/test custom ROMs
     void load_rom(const std::vector<u8>& raw_data);
-
-    /// Sets the keypad state
-    /// @param key_idx key index
-    /// @param state key state
-    void set_key_state(u8 key_idx, bool state);
-
-    /// Gets the keypad state
-    /// @param key_idx key index
-    /// @return key state
-    bool get_key_state(u8 key_idx) const {
-        return (bool)_keypad[key_idx];
-    }
-
-    /// Returns __video's pixel at address __idx
-    /// This can be used on the draw function to check if we should draw
-    u32 get_pixel(usize idx) const {
-        return _video[idx];
-    };
 
     /// Fetch, decode, execute...
     void run();

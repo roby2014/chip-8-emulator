@@ -9,11 +9,9 @@ int main(int argc, char** argv) {
         dbg_mode = argv[1][0] == '0' ? false : true;
     }
 
-    gui emu_gui(dbg_mode);
-    chip8 emu;
-
+    gui emu_gui{dbg_mode};
     while (emu_gui.running()) {
-        emu_gui.handle_events(&emu);
-        emu_gui.display(&emu);
+        emu_gui.handle_events();
+        emu_gui.display();
     }
 }

@@ -22,8 +22,91 @@ gui::~gui() {
 }
 
 void gui::registers_dock() {
+    // make some copies (used to determine if value changed so we change color)
+    static auto copy_of_v = _v;
+    static auto copy_of_i = _i;
+    static auto copy_of_pc = _pc;
+    static auto copy_of_sp = _sp;
+    static auto copy_of_stack = _stack;
+    static auto copy_of_delay_timer = _delay_timer;
+    static auto copy_of_sound_timer = _sound_timer;
+
+    auto white = ImVec4(255.0f, 255.0f, 255.0f, 1.0f);
+    auto red = ImVec4(255.0f, 0.0f, 0.0f, 1.0f);
+    auto flags = ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly;
+
     ImGui::Begin("Registers", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+    ImGui::Indent(10.0f);
+    ImGui::AlignTextToFramePadding();
+    ImGui::PushItemWidth(30.0f);
+
+    for (int i = 0; i < _v.size(); i++) {
+        if (i && !(i % 4)) {
+            ImGui::NewLine();
+        }
+
+        char label[6];
+        snprintf(label, sizeof(label), "##v%X", i);
+        ImGui::Text(&label[2]);
+        ImGui::PushStyleColor(ImGuiCol_Text, copy_of_v[i] == _v[i] ? white : red);
+        ImGui::SameLine();
+        ImGui::InputScalar(label, ImGuiDataType_U8, &_v[i], NULL, NULL, "%02X", flags);
+        ImGui::SameLine();
+        ImGui::PopStyleColor();
+    }
+
+    ImGui::NewLine();
+
+    // delay timer
+    ImGui::Text("DT");
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, copy_of_delay_timer == _delay_timer ? white : red);
+    ImGui::InputScalar("##DT", ImGuiDataType_U8, &_delay_timer, NULL, NULL, "%02X", flags);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    // sound timer
+    ImGui::Text("ST");
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, copy_of_sound_timer == _sound_timer ? white : red);
+    ImGui::InputScalar("##ST", ImGuiDataType_U8, &_sound_timer, NULL, NULL, "%02X", flags);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    // stack pointer
+    ImGui::Text("SP");
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, copy_of_sp == _sp ? white : red);
+    ImGui::InputScalar("##SP", ImGuiDataType_U8, &_sp, NULL, NULL, "%02X", flags);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    // index register
+    ImGui::TextColored(white, " I");
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, copy_of_i == _i ? white : red);
+    ImGui::InputScalar("##I", ImGuiDataType_U16, &_i, NULL, NULL, "%02X", flags);
+    ImGui::PopStyleColor();
+
+    // program counter
+    ImGui::TextColored(white, "PC");
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, copy_of_pc == _pc ? white : red);
+    ImGui::InputScalar("##PC", ImGuiDataType_U16, &_pc, NULL, NULL, "%X", flags);
+    ImGui::PopStyleColor();
+
+    ImGui::PopItemWidth();
     ImGui::End();
+
+    // update copies
+    copy_of_v = _v;
+    copy_of_i = _i;
+    copy_of_pc = _pc;
+    copy_of_sp = _sp;
+    copy_of_stack = _stack;
+    copy_of_delay_timer = _delay_timer;
+    copy_of_sound_timer = _sound_timer;
 }
 
 void gui::memory_dock() {
@@ -31,17 +114,16 @@ void gui::memory_dock() {
     ImGui::End();
 }
 
-void gui::keypad_dock(chip8* emu) {
+void gui::keypad_dock() {
     ImGui::Begin("Keypad", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
     for (usize idx = 0; const auto& k : {0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9,
                                          0xE, 0xA, 0x0, 0xB, 0xF}) {
         ImGui::PushID(k);
-        if (ImGui::Selectable(to_string(k).c_str(), emu->get_key_state(k) == 1, 0,
-                              ImVec2{50, 50})) {
-            emu->set_key_state(k, 1);
+        if (ImGui::Selectable(to_string(k).c_str(), _keypad[k] == 1, 0, ImVec2{50, 50})) {
+            _keypad[k] = 1;
         } else {
-            emu->set_key_state(k, 0);
+            _keypad[k] = 0;
         }
         ImGui::PopID();
         if (++idx % 4 != 0) {
@@ -72,13 +154,13 @@ void gui::code_dock() {
     ImGui::End();
 }
 
-void gui::emulator_dock(chip8* emu) {
+void gui::emulator_dock() {
     ImGui::Begin("Emulator", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    draw_emulator(emu, 0);
+    draw_emulator(0);
     ImGui::End();
 }
 
-void gui::show_main_menu_bar(chip8* emu) {
+void gui::show_main_menu_bar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Load ROM", "Ctrl+O")) {
@@ -101,7 +183,7 @@ void gui::show_main_menu_bar(chip8* emu) {
                 }
 #endif
                 // TODO: clear everything from previous ROM
-                emu->load_rom(fname);
+                load_rom(fname);
                 _rom_loaded = true;
             }
             ImGui::EndMenu();
@@ -116,17 +198,17 @@ void gui::show_main_menu_bar(chip8* emu) {
     }
 }
 
-void gui::draw_emulator(chip8* emu, const ImGuiWindowFlags& flags) {
+void gui::draw_emulator(const ImGuiWindowFlags& flags) {
     if (!_DEBUG_MODE) // only create a new imgui container if not in debug mode
         ImGui::Begin("Game", nullptr, flags);
     if (_rom_loaded) {
-        emu->run();
+        run();
         _texture.clear();
         for (usize row = 0, idx = 0; idx < DISPLAY_SIZE; idx++) {
             usize col = (idx % CHIP8_WIDTH);
             sf::RectangleShape pixel(sf::Vector2f(SCALE_FACTOR, SCALE_FACTOR));
             pixel.setPosition(col * SCALE_FACTOR, row * SCALE_FACTOR);
-            pixel.setFillColor(emu->get_pixel(idx) == 1 ? sf::Color::White : sf::Color::Black);
+            pixel.setFillColor(_video[idx] == 1 ? sf::Color::White : sf::Color::Black);
             _texture.draw(pixel);
 
             if ((idx + 1) % CHIP8_WIDTH == 0) {
@@ -142,10 +224,10 @@ void gui::draw_emulator(chip8* emu, const ImGuiWindowFlags& flags) {
         ImGui::End();
 }
 
-void gui::display(chip8* emu) {
+void gui::display() {
     _window.clear();
 
-    show_main_menu_bar(emu);
+    show_main_menu_bar();
     if (!_DEBUG_MODE) {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -153,15 +235,15 @@ void gui::display(chip8* emu) {
         static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
                                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                                         ImGuiWindowFlags_NoSavedSettings;
-        draw_emulator(emu, flags);
+        draw_emulator(flags);
 
     } else {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         code_dock();
         memory_dock();
-        keypad_dock(emu);
-        emulator_dock(emu);
+        keypad_dock();
+        emulator_dock();
         registers_dock();
     }
 
@@ -170,7 +252,7 @@ void gui::display(chip8* emu) {
     _window.display();
 }
 
-void gui::handle_events(chip8* emu) {
+void gui::handle_events() {
     sf::Event event;
     while (_window.pollEvent(event)) {
         ImGui::SFML::ProcessEvent(_window, event);
@@ -193,52 +275,52 @@ void gui::handle_events(chip8* emu) {
             default:
                 break;
             case sf::Keyboard::Key::Num1:
-                emu->set_key_state(1, state);
+                _keypad[1] = state;
                 break;
             case sf::Keyboard::Key::Num2:
-                emu->set_key_state(2, state);
+                _keypad[2] = state;
                 break;
             case sf::Keyboard::Key::Num3:
-                emu->set_key_state(3, state);
+                _keypad[3] = state;
                 break;
             case sf::Keyboard::Key::Num4:
-                emu->set_key_state(0xC, state);
+                _keypad[0xC] = state;
                 break;
             case sf::Keyboard::Key::Q:
-                emu->set_key_state(4, state);
+                _keypad[4] = state;
                 break;
             case sf::Keyboard::Key::W:
-                emu->set_key_state(5, state);
+                _keypad[5] = state;
                 break;
             case sf::Keyboard::Key::E:
-                emu->set_key_state(6, state);
+                _keypad[6] = state;
                 break;
             case sf::Keyboard::Key::R:
-                emu->set_key_state(0xD, state);
+                _keypad[0xD] = state;
                 break;
             case sf::Keyboard::Key::A:
-                emu->set_key_state(7, state);
+                _keypad[7] = state;
                 break;
             case sf::Keyboard::Key::S:
-                emu->set_key_state(8, state);
+                _keypad[8] = state;
                 break;
             case sf::Keyboard::Key::D:
-                emu->set_key_state(9, state);
+                _keypad[9] = state;
                 break;
             case sf::Keyboard::Key::F:
-                emu->set_key_state(0xE, state);
+                _keypad[0xE] = state;
                 break;
             case sf::Keyboard::Key::Z:
-                emu->set_key_state(0xA, state);
+                _keypad[0xA] = state;
                 break;
             case sf::Keyboard::Key::X:
-                emu->set_key_state(0, state);
+                _keypad[0] = state;
                 break;
             case sf::Keyboard::Key::C:
-                emu->set_key_state(0xB, state);
+                _keypad[0xB] = state;
                 break;
             case sf::Keyboard::Key::V:
-                emu->set_key_state(0xF, state);
+                _keypad[0xF] = state;
                 break;
             }
         }
