@@ -30,6 +30,8 @@ The project is not fully implemented, here are some stuff I still need to add:
 
 ## Screenshots
 
+![ss](/assets/prev_debugger.png)
+
 ## Building and running
 
 ### Linux
