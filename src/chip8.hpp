@@ -65,7 +65,14 @@ class chip8 {
     /// Sets the keypad state
     /// @param key_idx key index
     /// @param state key state
-    void set_key(u8 key_idx, bool state);
+    void set_key_state(u8 key_idx, bool state);
+
+    /// Gets the keypad state
+    /// @param key_idx key index
+    /// @return key state
+    bool get_key_state(u8 key_idx) const {
+        return (bool)_keypad[key_idx];
+    }
 
     /// Returns __video's pixel at address __idx
     /// This can be used on the draw function to check if we should draw

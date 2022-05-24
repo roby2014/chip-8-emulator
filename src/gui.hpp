@@ -24,7 +24,7 @@ class gui {
     void memory_dock();
 
     /// Draws keypad dock
-    void keypad_dock();
+    void keypad_dock(chip8* emu);
 
     /// Draws code dock
     void code_dock();

@@ -31,8 +31,24 @@ void gui::memory_dock() {
     ImGui::End();
 }
 
-void gui::keypad_dock() {
+void gui::keypad_dock(chip8* emu) {
     ImGui::Begin("Keypad", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+    for (usize idx = 0; const auto& k : {0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9,
+                                         0xE, 0xA, 0x0, 0xB, 0xF}) {
+        ImGui::PushID(k);
+        if (ImGui::Selectable(to_string(k).c_str(), emu->get_key_state(k) == 1, 0,
+                              ImVec2{50, 50})) {
+            emu->set_key_state(k, 1);
+        } else {
+            emu->set_key_state(k, 0);
+        }
+        ImGui::PopID();
+        if (++idx % 4 != 0) {
+            ImGui::SameLine();
+        }
+    }
+
     ImGui::End();
 }
 
@@ -131,7 +147,6 @@ void gui::display(chip8* emu) {
 
     show_main_menu_bar(emu);
     if (!_DEBUG_MODE) {
-        ImGui::ShowDemoWindow();
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -145,11 +160,12 @@ void gui::display(chip8* emu) {
 
         code_dock();
         memory_dock();
-        keypad_dock();
+        keypad_dock(emu);
         emulator_dock(emu);
         registers_dock();
     }
 
+    ImGui::ShowDemoWindow();
     ImGui::SFML::Render(_window);
     _window.display();
 }
@@ -161,57 +177,68 @@ void gui::handle_events(chip8* emu) {
         if (event.type == sf::Event::Closed) {
             _window.close();
         } else if (event.type == sf::Event::KeyPressed || sf::Event::KeyReleased) {
+            // Keypad layout:
+            // Keypad       Keyboard
+            //+-+-+-+-+    +-+-+-+-+
+            //|1|2|3|C|    |1|2|3|4|
+            //+-+-+-+-+    +-+-+-+-+
+            //|4|5|6|D|    |Q|W|E|R|
+            //+-+-+-+-+ => +-+-+-+-+
+            //|7|8|9|E|    |A|S|D|F|
+            //+-+-+-+-+    +-+-+-+-+
+            //|A|0|B|F|    |Z|X|C|V|
+            //+-+-+-+-+    +-+-+-+-+
             bool state = event.type == sf::Event::KeyPressed; // press = 1, release = 0
             switch (event.key.code) {
             default:
                 break;
             case sf::Keyboard::Key::Num1:
-                emu->set_key(1, state);
+                emu->set_key_state(1, state);
                 break;
             case sf::Keyboard::Key::Num2:
-                emu->set_key(2, state);
+                emu->set_key_state(2, state);
                 break;
             case sf::Keyboard::Key::Num3:
-                emu->set_key(3, state);
+                emu->set_key_state(3, state);
                 break;
             case sf::Keyboard::Key::Num4:
-                emu->set_key(0xC, state);
+                emu->set_key_state(0xC, state);
                 break;
             case sf::Keyboard::Key::Q:
-                emu->set_key(4, state);
+                emu->set_key_state(4, state);
                 break;
             case sf::Keyboard::Key::W:
-                emu->set_key(5, state);
+                emu->set_key_state(5, state);
                 break;
             case sf::Keyboard::Key::E:
-                emu->set_key(6, state);
+                emu->set_key_state(6, state);
                 break;
             case sf::Keyboard::Key::R:
-                emu->set_key(0xD, state);
+                emu->set_key_state(0xD, state);
                 break;
             case sf::Keyboard::Key::A:
-                emu->set_key(7, state);
+                emu->set_key_state(7, state);
                 break;
             case sf::Keyboard::Key::S:
-                emu->set_key(8, state);
+                emu->set_key_state(8, state);
                 break;
             case sf::Keyboard::Key::D:
-                emu->set_key(9, state);
+                emu->set_key_state(9, state);
                 break;
             case sf::Keyboard::Key::F:
-                emu->set_key(0xE, state);
+                emu->set_key_state(0xE, state);
                 break;
             case sf::Keyboard::Key::Z:
-                emu->set_key(0xA, state);
+                emu->set_key_state(0xA, state);
                 break;
             case sf::Keyboard::Key::X:
-                emu->set_key(0, state);
+                emu->set_key_state(0, state);
                 break;
             case sf::Keyboard::Key::C:
-                emu->set_key(0xB, state);
+                emu->set_key_state(0xB, state);
                 break;
             case sf::Keyboard::Key::V:
-                emu->set_key(0xF, state);
+                emu->set_key_state(0xF, state);
                 break;
             }
         }

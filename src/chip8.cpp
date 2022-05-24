@@ -124,7 +124,7 @@ void chip8::load_rom(const std::vector<u8>& raw_data) {
     }
 }
 
-void chip8::set_key(u8 key_idx, bool state) {
+void chip8::set_key_state(u8 key_idx, bool state) {
     if (key_idx < 0 || key_idx > 15) {
         return;
     }
