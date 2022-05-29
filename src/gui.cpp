@@ -1,9 +1,9 @@
 #include "gui.hpp"
-#include "utils.hpp"
 #include "chip8.hpp"
-#include "imgui.h"
 #include "imgui-SFML.h"
+#include "imgui.h"
 #include "imgui_memory_editor.h"
+#include "utils.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -333,5 +333,6 @@ void gui::handle_events() {
     if (_DEBUG_MODE) {
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     }
+
     ImGui::SFML::Update(_window, deltaClock.restart());
 }
