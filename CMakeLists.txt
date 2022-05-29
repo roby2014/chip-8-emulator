@@ -29,7 +29,9 @@ target_link_libraries(imgui
 )
 
 # sfml
-set(SFML_STATIC_LIBRARIES TRUE)
+IF(WIN32) # static link only on windows xddd
+	set(SFML_STATIC_LIBRARIES TRUE)
+ENDIF()
 find_package(SFML 2.5.1 COMPONENTS system window graphics REQUIRED)
 
 # opengl (fixes some linking error from imgui-sfml lol)
