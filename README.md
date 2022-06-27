@@ -13,6 +13,9 @@ You can find more about CHIP-8 here:
 
 I know that technically this is more like a interpreter & virtual machine implementation than a real "emulator". But.... emulator sounds cool.
 
+## Warning
+This was my *first* step into emulators and real C++, so don't expect "good" code.
+
 ## TODO
 
 The project is not fully implemented, here are some stuff I still need to add:
